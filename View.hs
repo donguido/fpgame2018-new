@@ -10,7 +10,7 @@ view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure gstate = case infoToShow gstate of
-  drawing -> pictures[translate (0) (0 + upVector gstate) (color white (polygon [(-25,0),(25,0),(0,50)])), translate (0) (50 {-+ elapsedTime gstate-}) (color blue(circleSolid 2))]
+  drawing -> pictures[translate (0) (0) (color white (polygon [(-25,0),(25,0),(0,50)])), translate (0) (50 {-+ elapsedTime gstate-}) (color blue(circleSolid 2))]
     
 {-viewPure gstate = case infoToShow gstate of
   ShowNothing   -> blank
