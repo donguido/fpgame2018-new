@@ -9,7 +9,7 @@ data InfoToShow = ShowNothing
                 | Drawing Picture				
 
 nO_SECS_BETWEEN_CYCLES :: Float
-nO_SECS_BETWEEN_CYCLES = 5
+nO_SECS_BETWEEN_CYCLES = 60
 
 data GameState = GameState {
                    infoToShow  :: InfoToShow
