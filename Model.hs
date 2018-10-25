@@ -3,22 +3,35 @@
 module Model where
 
 import Graphics.Gloss
-data InfoToShow = ShowNothing
+data InfoToShow = ShowMenu
+                | ShowGame
+				| ShowHighScore
+                {-| Drawing Picture
                 | ShowANumber Int
-                | ShowAChar   Char
-                | Drawing Picture				
+                | ShowAChar   Char-}				
 
 nO_SECS_BETWEEN_CYCLES :: Float
 nO_SECS_BETWEEN_CYCLES = 60
 
-data GameState = GameState {
+data GameState = GamePlaying {
                    infoToShow  :: InfoToShow
                  , elapsedTime :: Float
 				 , upVector :: Float
+				 , leftVector :: Float
+				 , rightVector :: Float
                  }
-
+			   | GameMenu {
+				   infoToShow :: InfoToShow
+				 , elapsedTime :: Float
+				 } 
+               | GameHighScore {
+			       infoToShow :: InfoToShow
+				 , elapsedTime :: Float
+			   }
 initialState :: GameState
-initialState = GameState ShowNothing 0 0 
+initialState = GameMenu ShowMenu 0
+
+--GameMenu Drawing
 
 type AsteroidVector = ( Float,Float )
 type PlayerSpeed = Int  
@@ -32,7 +45,6 @@ type ShootingRange = ( Float,Float )
 
 data Asteroid =  Small | Medium | Big
 data Level = LvlOne | LvlTwo | LvlThree | LvlFour
---data GameStatus = GamePaused | GameOver | HighScore | GameMenu | GameFinished | GamePlaying
 data Lives = ThreeLives | TwoLives | OneLives | ZeroLives
 data PlayGameButton = PlayOn | PlayOff
 data Collision =  IsCollided | NotCollided 

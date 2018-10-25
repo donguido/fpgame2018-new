@@ -10,9 +10,10 @@ view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure gstate = case infoToShow gstate of
-  drawing -> pictures[translate (0) (0+ upVector gstate) (color white (polygon [(-25,0),(25,0),(0,50)])), translate (0) (50 + elapsedTime gstate) (color blue(circleSolid 2))]
-    
-{-viewPure gstate = case infoToShow gstate of
-  ShowNothing   -> blank
-  ShowANumber n -> color white (text (show n))
-  ShowAChar   c -> color white (text [c])-}
+  ShowMenu ->  pictures[ color white(text "Asteroid") ]
+  ShowGame -> pictures[rotate (0 + leftVector gstate + rightVector gstate)(translate (0) (0 + upVector gstate) (color white (polygon [(-25,0),(25,0),(0,50)])))
+                              , translate (0) (50 + elapsedTime gstate) (color blue(circleSolid 2))]
+  ShowHighScore -> pictures[ color white(text "High Score") ]
+	{-where  g = mkStdGen 10
+	       random = randomR (1, 10) g
+		   r -> fst(random)-}
