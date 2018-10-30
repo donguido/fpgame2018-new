@@ -1,5 +1,6 @@
 -- | This module contains the data types
 --   which represent the state of the game
+{-# LANGUAGE InstanceSigs #-}
 module Model where
 
 import Graphics.Gloss
@@ -28,6 +29,15 @@ data GameState = GamePlaying {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
 			   }
+			   
+{-instance Eq GameState where
+  (==) :: GameState -> GameState -> Bool
+  gs1 == gs2 = gs1 == gs2  
+  --(gs1 _ _ _ _) == (gs2 _ _ _ _) = gs1 == gs2
+  (/=) :: GameState -> GameState -> Bool
+  gs1 /= gs2 = gs1 /= gs2
+  --(gs1 _ _ _ _) /= (gs2 _ _ _ _) = gs1 /= gs2	-}
+   
 initialState :: GameState
 initialState = GameMenu ShowMenu 0
 

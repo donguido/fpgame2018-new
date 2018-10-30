@@ -27,8 +27,6 @@ input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
 
 inputKey :: Event -> GameState -> GameState
-{-inputKey (EventKey (Char c) _ _ _) gstate
-  = gstate { infoToShow = ShowAChar c }-}
 inputKey (EventKey (Char 'w') _ _ _) gstate
  = gstate { upVector = upVector gstate + speed * elapsedTime gstate }
 inputKey (EventKey (Char 'a') _ _ _) gstate
@@ -38,7 +36,9 @@ inputKey (EventKey (Char 'd') _ _ _) gstate
 inputKey (EventKey (Char 'p') _ _ _) gstate
  = undefined
 inputKey (EventKey (Char 'h') _ _ _) gstate
- = GameHighScore ShowHighScore 0 
+ = GameHighScore ShowHighScore 0
+ {-| gstate == (GameMenu ShowMenu 0) = GameHighScore ShowHighScore 0 
+ | otherwise = gstate-}
 inputKey (EventKey (SpecialKey KeyEnter) _ _ _) gstate
  = GamePlaying ShowGame 0 0 0 0 
 inputKey _ gstate = gstate -- Otherwise keep the same
