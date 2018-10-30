@@ -48,7 +48,7 @@ inputKeyGame _ gstate = gstate
  
 inputKeyMenu :: Event -> GameState -> GameState
 inputKeyMenu (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 3
+ = GamePlaying ShowGame 0 0 0 0 0 3 0 0
 inputKeyMenu (EventKey (Char 'h') _ _ _) gstate
  = GameHighScore ShowHighScore 0
 inputKeyMenu _ gstate = gstate
