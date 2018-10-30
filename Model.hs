@@ -7,6 +7,7 @@ import Graphics.Gloss
 data InfoToShow = ShowMenu
                 | ShowGame
 				| ShowHighScore
+				| ShowPauze
                 {-| Drawing Picture
                 | ShowANumber Int
                 | ShowAChar   Char-}				
@@ -20,6 +21,8 @@ data GameState = GamePlaying {
 				 , upVector :: Float
 				 , leftVector :: Float
 				 , rightVector :: Float
+				 , score :: Int
+				 , lives :: Int
                  }
 			   | GameMenu {
 				   infoToShow :: InfoToShow
@@ -29,14 +32,11 @@ data GameState = GamePlaying {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
 			   }
-			   
-{-instance Eq GameState where
-  (==) :: GameState -> GameState -> Bool
-  gs1 == gs2 = gs1 == gs2  
-  --(gs1 _ _ _ _) == (gs2 _ _ _ _) = gs1 == gs2
-  (/=) :: GameState -> GameState -> Bool
-  gs1 /= gs2 = gs1 /= gs2
-  --(gs1 _ _ _ _) /= (gs2 _ _ _ _) = gs1 /= gs2	-}
+			   | GamePaused {
+			       infoToShow :: InfoToShow
+				 , elapsedTime :: Float
+			   }
+
    
 initialState :: GameState
 initialState = GameMenu ShowMenu 0
