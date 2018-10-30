@@ -35,7 +35,7 @@ inputKeyBool _ gstate =-}
 
 inputKeyGame :: Event -> GameState -> GameState
 inputKeyGame (EventKey (Char 'w') Down _ _) gstate
- = gstate { upVector = upVector gstate + speed } 
+ = gstate { upVector = sin(( 90 - rightVector gstate + leftVector gstate)/(180*pi)),  leftUpVector = cos((90 + leftVector gstate)/(180*pi)), rightUpVector = cos((90 + rightVector gstate)/(180*pi)) }
 inputKeyGame (EventKey (Char 'a') _ _ _) gstate
  = gstate { leftVector = leftVector gstate - speed  }
 inputKeyGame (EventKey (Char 'd') _ _ _) gstate
@@ -60,7 +60,7 @@ inputKeyHigh _ gstate = gstate
 
 inputKey :: Event -> GameState -> GameState
 inputKey event gstate = case gstate of 
- GamePlaying _ _ _ _ _ _ _ -> inputKeyGame event gstate
+ GamePlaying _ _ _ _ _ _ _ _ _ -> inputKeyGame event gstate
  GameMenu _ _ -> inputKeyMenu event gstate
  GameHighScore _ _ -> inputKeyHigh event gstate 
 

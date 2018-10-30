@@ -21,6 +21,8 @@ data GameState = GamePlaying {
 				 , upVector :: Float
 				 , leftVector :: Float
 				 , rightVector :: Float
+				 , leftUpVector :: Float
+                 , rightUpVector :: Float
 				 , score :: Int
 				 , lives :: Int
                  }
