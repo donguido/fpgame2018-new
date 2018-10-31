@@ -9,6 +9,12 @@ view :: GameState -> IO Picture
 view = return . viewPure
 -- this view function return the viewpure function to the IO.
 
+
+merge :: [a] -> [a] -> [a]
+merge xs     []     = xs
+merge []     ys     = ys
+merge (x:xs) (y:ys) = x : y : merge xs ys
+
 viewPure :: GameState -> Picture
 -- the function viewPure writes for each gamestate figures and text to the screen.
 viewPure gstate = case infoToShow gstate of
@@ -17,14 +23,14 @@ viewPure gstate = case infoToShow gstate of
                          , scale (0.5) (0.5) (translate (-350) (-150) (color white (text "press h to see highscores")))]
 -- for the gameMenu we write the titlescreen, with instructions with how to start the game and to see the highscorelist.
 						 
-  ShowGame -> pictures[ (translate(0  + xNew gstate)  (0 + upVector gstate) 
-                                (rotate (0 + leftVector gstate + rightVector gstate)(color white (polygon [(-25,0),(25,0),(0,50)]))))
-                              , translate (0) (50 + elapsedTime gstate) (color blue(circleSolid 3))
-                              , scale (0.2)(0.2) (translate (-1500)( 1650) (color white(text ("Score:" ++ show (score gstate)))))
-                              , scale (0.2)(0.2) (translate (-1500)( 1500) (color white(text ("Lives:" ++ show (lives gstate)))))
-                              , translate (-100 + xVector ) (200 - yVector) (color red(thickCircle 20 2))] 
-                              where xVector = elapsedTime gstate * 20 
-                                    yVector = elapsedTime gstate * 20 
+  ShowGame -> pictures(merge [ player
+                      , scale (0.2)(0.2) (translate (-1500)( 1650) (color white(text ("Score:" ++ show (score gstate)))))
+                      , scale (0.2)(0.2) (translate (-1500)( 1500) (color white(text ("Lives:" ++ show (lives gstate)))))
+                      , asteroid]  (bulletList gstate) )
+                        where player = (translate (0 + xNew gstate) (0 + upVector gstate)(rotate (0 + leftVector gstate + rightVector gstate)(color white (line [(-25, -15), (0,0),(25,-15),(0,50),(-25,-15)]))))
+                              asteroid = translate (-100 + xVector ) (200 - yVector) (color red(thickCircle 20 1))
+                              xVector = elapsedTime gstate * 20 
+                              yVector = elapsedTime gstate * 20 
 -- when the player plays the game, then the game will, dependent on the player input, write the spaceship, asteroids, bullets, score and lives on the screen.
                                     
   ShowHighScore -> pictures[ scale (0.5) (0.5) (translate (0) (150) (color white(text "High Score")))
@@ -32,15 +38,15 @@ viewPure gstate = case infoToShow gstate of
 -- when the player is in the highscoresstate, then we will show the highscorelist and a text that says that the player can return to the gameMenu.
 
 
-  ShowPause -> pictures[ (translate (0 + xNew gstate) (0 + upVector gstate)
-                            (rotate (0 + leftVector gstate + rightVector gstate)(color white (polygon [(-25,0),(25,0),(0,50)]))))
-                         , translate (0) (50 + elapsedTime gstate) (color blue(circleSolid 3))
+  ShowPause -> pictures(merge [ player
 						             , scale (0.2)(0.2) (translate (-1500)( 1650) (color white(text ("Score:" ++ show (score gstate)))))
 						             , scale (0.2)(0.2) (translate (-1500)( 1500) (color white(text ("Lives:" ++ show (lives gstate)))))
-                         , translate (-100 + xVector ) (200 - yVector) (color red(thickCircle 20 2))
-					               , scale (0.5) (0.5) (translate (0) (500) (color white(text "Pause")))] 
-                        where xVector = elapsedTime gstate * 20 
-                              yVector = elapsedTime gstate * 20
+                         , asteroid
+                         , scale (0.5) (0.5) (translate (0) (500) (color white(text "Pause")))] (bulletList gstate))
+                              where player = (translate (0 + xNew gstate) (0 + upVector gstate)(rotate (0 + leftVector gstate + rightVector gstate)(color white (line [(-25, -15), (0,0),(25,-15),(0,50),(-25,-15)]))))
+                                    asteroid = translate (-100 + xVector ) (200 - yVector) (color red(thickCircle 20 1))
+                                    xVector = elapsedTime gstate * 20 
+                                    yVector = elapsedTime gstate * 20
 -- when the player pause the game. the text pause will appear and all the spaceship, asteroids and bullets will stop moving.
   
   ShowGameOver -> pictures[ scale (0.5) (0.5) (translate (0) (150) (color white(text "Game Over")))

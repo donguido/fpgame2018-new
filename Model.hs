@@ -23,7 +23,11 @@ data GameState = GamePlaying {
 				 , xNew :: Float
 				 , score :: Int
 				 , lives :: Int
-                 }
+                 , bullets :: Int
+				 , bulletList :: [Picture]
+				 , bulletX :: Float
+				 , bulletY :: Float
+			     }
 			   | GameMenu {
 				   infoToShow :: InfoToShow
 				 , elapsedTime :: Float
@@ -41,6 +45,10 @@ data GameState = GamePlaying {
 				 , xNew :: Float
 				 , score :: Int
 				 , lives :: Int
+				 , bullets :: Int
+				 , bulletList :: [Picture]
+				 , bulletX :: Float
+				 , bulletY :: Float
 				 }
                | GameOver {
 			       infoToShow :: InfoToShow

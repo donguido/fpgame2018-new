@@ -25,7 +25,7 @@ pressed = False
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case gstate of
-  GamePaused _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate }
+  GamePaused _ _ _ _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate }
   _ -> return $ gstate { elapsedTime = elapsedTime gstate + secs }
 --the step function handles the iterations of the game. it only updates the time when the game is not paused.
   {-| elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES 
@@ -63,8 +63,16 @@ inputKeyGame (EventKey (Char 'q') Down _ _) gstate
 inputKeyGame (EventKey (Char 'k') Down _ _) gstate
  = gstate { lives = lives gstate - 1}  
 inputKeyGame (EventKey (Char 'p') Down _ _) gstate
- = GamePaused ShowPause (elapsedTime gstate) (upVector gstate) (rightVector gstate) (leftVector gstate) (xNew gstate) (score gstate) (lives gstate)
--- when the player press the p key the game paused.
+ = GamePaused ShowPause (elapsedTime gstate) (upVector gstate) (rightVector gstate) (leftVector gstate) (xNew gstate) 
+                        (score gstate) (lives gstate) (bullets gstate) (bulletList gstate)(bulletX gstate)(bulletY gstate)
+ -- when the player press the p key the game paused.
+ 
+inputKeyGame (EventKey (Char 'n' ) Down _ _) gstate
+  = gstate {  bullets = bullets gstate + 1 ,  bulletList = (bulletList gstate) ++ (replicate (bullets gstate) (bullet))}   
+             where bullet = translate (0 + xNew gstate) (0 +upVector gstate) (rotate (0 + leftVector gstate + rightVector gstate) (color blue(circleSolid 3)))
+
+
+
 inputKeyGame _ gstate = case lives gstate of
   0 -> GameOver ShowGameOver 0 (score gstate)
   _ -> gstate
@@ -74,7 +82,7 @@ inputKeyGame _ gstate = case lives gstate of
 inputKeyMenu :: Event -> GameState -> GameState
 -- the inputKeyMenu function handles all the player input when the player is in the gamemenu.
 inputKeyMenu (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3
+ = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0
 -- when the player press the enter key, the game will start.
 inputKeyMenu (EventKey (Char 'h') _ _ _) gstate
  = GameHighScore ShowHighScore 0
@@ -93,7 +101,7 @@ inputKeyHigh _ gstate = gstate
 inputKeyOver :: Event -> GameState -> GameState
 -- the inputKeyOver function handles all the player input when the player is in the gameoverscreen.
 inputKeyOver (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3
+ = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0
 -- when the player press the enter key, the game will start again.
 inputKeyOver (EventKey (Char 'h') _ _ _) gstate
  = GameHighScore ShowHighScore 0
@@ -105,16 +113,17 @@ inputKeyOver _ gstate = gstate
 inputKeyPaused :: Event -> GameState -> GameState
 -- the inputKeyPaused function handles all the player input when the game is paused
 inputKeyPaused (EventKey (Char 'p') Down _ _) gstate
- = GamePlaying ShowGame (elapsedTime gstate) (upVector gstate) (rightVector gstate) (leftVector gstate) (xNew gstate) (score gstate) (lives gstate)
+ = GamePlaying ShowGame (elapsedTime gstate) (upVector gstate) (rightVector gstate) (leftVector gstate) (xNew gstate) (score gstate) 
+                        (lives gstate) (bullets gstate)(bulletList gstate)(bulletX gstate)(bulletY gstate)
 -- when the player press the p key again, then the game will resume normally.
 inputKeyPaused _ gstate = gstate
 -- for every other input the pausedscreen will not be affected.
 
 inputKey :: Event -> GameState -> GameState
 inputKey event gstate = case gstate of 
- GamePlaying _ _ _ _ _ _ _ _-> inputKeyGame event gstate
+ GamePlaying _ _ _ _ _ _ _ _ _ _ _ _-> inputKeyGame event gstate
  GameMenu _ _ -> inputKeyMenu event gstate
  GameHighScore _ _ -> inputKeyHigh event gstate 
  GameOver _ _ _ -> inputKeyOver event gstate
- GamePaused _ _ _ _ _ _ _ _-> inputKeyPaused event gstate
+ GamePaused _ _ _ _ _ _ _ _ _ _ _ _ -> inputKeyPaused event gstate
 -- the inputKey function will evaluated in which gamestate the player is, and will handle only input of the player that are used for the gamestate.
