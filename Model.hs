@@ -20,10 +20,9 @@ data GameState = GamePlaying {
                    infoToShow  :: InfoToShow
                  , elapsedTime :: Float
 				 , upVector :: Float
-				 , rightVector :: Float
 				 , leftVector :: Float
-				 , rightUpVector :: Float
-				 , leftUpVector :: Float
+				 , rightVector :: Float
+				 , xNew :: Float
 				 , score :: Int
 				 , lives :: Int
                  }
@@ -39,10 +38,9 @@ data GameState = GamePlaying {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
 				 , upVector :: Float
-				 , rightVector :: Float
 				 , leftVector :: Float
-				 , rightUpVector :: Float
-				 , leftUpVector :: Float
+				 , rightVector :: Float
+				 , xNew :: Float
 				 , score :: Int
 				 , lives :: Int
 			   }
@@ -50,6 +48,7 @@ data GameState = GamePlaying {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
 			   }
+
    
 initialState :: GameState
 initialState = GameMenu ShowMenu 0
