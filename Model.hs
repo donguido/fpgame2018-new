@@ -8,10 +8,8 @@ data InfoToShow = ShowMenu
                 | ShowGame
 				| ShowHighScore
 				| ShowPause
-				| ShowGameOver
-                {-| Drawing Picture
-                | ShowANumber Int
-                | ShowAChar   Char-}				
+				| ShowGameOver			
+-- this are the data infoToShow with the Show variables. This will be the info that the view class will need to write figures and text to the screen.
 
 nO_SECS_BETWEEN_CYCLES :: Float
 nO_SECS_BETWEEN_CYCLES = 60
@@ -43,15 +41,17 @@ data GameState = GamePlaying {
 				 , xNew :: Float
 				 , score :: Int
 				 , lives :: Int
-			   }
-			   | GameOver {
+				 }
+               | GameOver {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
+				 , score :: Int
 			   }
-
+-- this are the gamestates that the game can be in with the variables that we use in each state.
    
 initialState :: GameState
 initialState = GameMenu ShowMenu 0
+-- this is the initialstate in which the game will be when the player opens this program.
 
 --GameMenu Drawing
 
