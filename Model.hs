@@ -7,7 +7,8 @@ import Graphics.Gloss
 data InfoToShow = ShowMenu
                 | ShowGame
 				| ShowHighScore
-				| ShowPauze
+				| ShowPause
+				| ShowGameOver
                 {-| Drawing Picture
                 | ShowANumber Int
                 | ShowAChar   Char-}				
@@ -19,10 +20,10 @@ data GameState = GamePlaying {
                    infoToShow  :: InfoToShow
                  , elapsedTime :: Float
 				 , upVector :: Float
-				 , leftVector :: Float
 				 , rightVector :: Float
+				 , leftVector :: Float
+				 , rightUpVector :: Float
 				 , leftUpVector :: Float
-                 , rightUpVector :: Float
 				 , score :: Int
 				 , lives :: Int
                  }
@@ -37,8 +38,18 @@ data GameState = GamePlaying {
 			   | GamePaused {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
+				 , upVector :: Float
+				 , rightVector :: Float
+				 , leftVector :: Float
+				 , rightUpVector :: Float
+				 , leftUpVector :: Float
+				 , score :: Int
+				 , lives :: Int
 			   }
-
+			   | GameOver {
+			       infoToShow :: InfoToShow
+				 , elapsedTime :: Float
+			   }
    
 initialState :: GameState
 initialState = GameMenu ShowMenu 0
