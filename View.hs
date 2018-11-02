@@ -18,6 +18,9 @@ merge (x:xs) (y:ys) = x : y : merge xs ys
 drawBullet :: Bullet -> Picture
 drawBullet x = translate (bulletX x) (bulletY x) (color blue(circleSolid 3))
 
+drawAsteroid :: Asteroid -> Picture
+drawAsteroid x = translate (asteroidX x) (asteroidY x) (color red(thickCircle 20 1))
+
 viewPure :: GameState -> Picture
 -- the function viewPure writes for each gamestate figures and text to the screen.
 viewPure gstate = case infoToShow gstate of
@@ -29,9 +32,8 @@ viewPure gstate = case infoToShow gstate of
   ShowGame -> pictures(merge [ player
                       , scale (0.2)(0.2) (translate (-1500)( 1650) (color white(text ("Score:" ++ show (score gstate)))))
                       , scale (0.2)(0.2) (translate (-1500)( 1500) (color white(text ("Lives:" ++ show (lives gstate)))))
-                      , asteroid]  $ map drawBullet (bulletList gstate))
+                      ]  $ (merge (map drawBullet (bulletList gstate))(map drawAsteroid (asteroidList gstate))))
                         where player = (translate (0 + xVector gstate) (0 + yVector gstate)(rotate (0 + leftVector gstate + rightVector gstate)(color white (line [(-25, -15), (0,0),(25,-15),(0,50),(-25,-15)]))))
-                              asteroid = translate (0 + asteroidxVector ) (0 - asteroidyVector) (color red(thickCircle 20 1))
                               asteroidxVector = elapsedTime gstate * 20 
                               asteroidyVector = elapsedTime gstate * 20 
                               
@@ -45,10 +47,8 @@ viewPure gstate = case infoToShow gstate of
   ShowPause -> pictures(merge [ player
 						             , scale (0.2)(0.2) (translate (-1500)( 1650) (color white(text ("Score:" ++ show (score gstate)))))
 						             , scale (0.2)(0.2) (translate (-1500)( 1500) (color white(text ("Lives:" ++ show (lives gstate)))))
-                         , asteroid
-                         , scale (0.5) (0.5) (translate (0) (500) (color white(text "Pause")))] $ map drawBullet (bulletList gstate))
+                         , scale (0.5) (0.5) (translate (0) (500) (color white(text "Pause")))] $ (merge (map drawBullet (bulletList gstate))(map drawAsteroid (asteroidList gstate))))
                               where player = (translate (0 + xVector gstate) (0 + yVector gstate)(rotate (0 + leftVector gstate + rightVector gstate)(color white (line [(-25, -15), (0,0),(25,-15),(0,50),(-25,-15)]))))
-                                    asteroid = translate (0 + asteroidxVector ) (0 - asteroidyVector) (color red(thickCircle 20 1))
                                     asteroidxVector = elapsedTime gstate * 20 
                                     asteroidyVector = elapsedTime gstate * 20
 

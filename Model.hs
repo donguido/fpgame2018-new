@@ -22,6 +22,12 @@ data Bullet = Bullet {
 			  
 }
 
+data Asteroid = Asteroid {
+			   asteroidX :: Float
+			  ,asteroidY :: Float
+			  ,asteroidXVector :: Float
+			  ,asteroidYVector :: Float
+}
 data GameState = GamePlaying {
                    infoToShow  :: InfoToShow
                  , elapsedTime :: Float
@@ -32,6 +38,7 @@ data GameState = GamePlaying {
 				 , score :: Int
 				 , lives :: Int
 				 , bulletList :: [Bullet]
+				 , asteroidList :: [Asteroid]
 				 , highScoreList :: String		 
 			     }
 			   | GameMenu {
@@ -56,6 +63,7 @@ data GameState = GamePlaying {
 				 , score :: Int
 				 , lives :: Int
 				 , bulletList :: [Bullet]
+				 , asteroidList :: [Asteroid]
 				 }
                | GameOver {
 			       infoToShow :: InfoToShow
@@ -82,7 +90,7 @@ type LevelName = String
 type BulletVector = ( Float,Float )
 type ShootingRange = ( Float,Float )
 
-data Asteroid =  Small | Medium | Big
+
 data Level = LvlOne | LvlTwo | LvlThree | LvlFour
 data Lives = ThreeLives | TwoLives | OneLives | ZeroLives
 data PlayGameButton = PlayOn | PlayOff
