@@ -16,22 +16,31 @@ moveSpeed :: Float
 moveSpeed = 10
 -- this is the defition of the moveSpeed value we use in this controller class.
 
-pressed :: Bool
-pressed = False
+
+changeBullet :: Bullet -> Bullet
+changeBullet Bullet {bulletX = x , bulletY = y, bulletXVector = vx, bulletYVector = vy} = Bullet { bulletX = x + vx , bulletY = y + vy,bulletXVector = vx, bulletYVector = vy }
+
+
+oobBullet :: Bullet -> Bool
+oobBullet Bullet {bulletX = x , bulletY = y} = ( x < -500) || ( y > 300 ) || ( x > 500 ) || ( y < -300 ) 
+        
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case gstate of
   GameMenu _ _ _ False -> do readscore <- readFile "HighScore.txt"
                              return $ gstate { highScoreList = readscore, readHighList = True}
-  GamePaused _ _ _ _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate }
+  GamePaused _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate } 
+  GamePlaying _ _ _ _ _ _ _ _ _ _-> return $ gstate {elapsedTime = elapsedTime gstate + secs , 
+                                                   bulletList =  filter (\x -> not (oobBullet x) )(map changeBullet (bulletList gstate))
+                                                   }
   GameOver _ _ _ _ False -> do 
                             let addscore = highScoreList gstate ++ " " ++ show(score gstate)
                             writescore <- writeFile ("HighScores.txt") addscore
                             copyscore <- writeFile "Highscore.txt" addscore
                             return $ gstate { saved = True } 
   GameHighScore _ _ _ False -> do highScoreL <- readFile "HighScores.txt"
-                                  return $ gstate { readed = True, highScoreList = highScoreL }    
+                                  return $ gstate { readed = True, highScoreList = highScoreL } 
   _ -> return $ gstate { elapsedTime = elapsedTime gstate + secs }
 --the step function handles the iterations of the game. it only updates the time when the game is not paused.
   {-| elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES 
@@ -47,16 +56,25 @@ input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
 -- the input function handles the player input in the game in each gamestate where the player is in and change the IO of the gamestate.
 
+createBullet :: Float -> Float -> Float -> Float -> Bullet
+createBullet px py vx vy =  Bullet { bulletX = px , bulletY = py ,  bulletXVector = vx, bulletYVector = vy }
+
+
 degreesToRad :: Float -> Float
 degreesToRad x = x*(pi/180)
 -- the degreesToRad function convert a degree to a radian.
 
+
+
+
 inputKeyGame :: Event -> GameState -> GameState
 -- the inputKeyGame function handles all the player input when he is playing the game.
 inputKeyGame (EventKey (Char 'w') Down _ _) gstate
- = gstate { upVector = upVector gstate + (moveSpeed * sin(degreesToRad (90 + rightVector gstate + leftVector gstate)))
-          , xNew  = xNew gstate  - (moveSpeed * cos(degreesToRad (90 + rightVector gstate + leftVector gstate)))
-}
+ = gstate { yVector = yVector gstate + (moveSpeed * sinRotate)
+          , xVector  = xVector gstate  - (moveSpeed * cosRotate)}
+            where sinRotate = sin(degreesToRad (90 + rightVector gstate + leftVector gstate ))
+                  cosRotate = cos(degreesToRad (90 + rightVector gstate  + leftVector gstate ))
+
 -- when the player press the w key the spaceship moves forward in the right direction.
 inputKeyGame (EventKey (Char 'a') Down _ _) gstate
  = gstate { leftVector = leftVector gstate - rotateSpeed }
@@ -69,13 +87,17 @@ inputKeyGame (EventKey (Char 'q') Down _ _) gstate
 inputKeyGame (EventKey (Char 'k') Down _ _) gstate
  = gstate { lives = lives gstate - 1}  
 inputKeyGame (EventKey (Char 'p') Down _ _) gstate
- = GamePaused ShowPause (elapsedTime gstate) (upVector gstate) (rightVector gstate) (leftVector gstate) (xNew gstate) 
-                        (score gstate) (lives gstate) (bullets gstate) (bulletList gstate)(bulletX gstate)(bulletY gstate)
+ = GamePaused ShowPause (elapsedTime gstate) (yVector gstate) (rightVector gstate) (leftVector gstate) (xVector gstate) 
+                        (score gstate) (lives gstate) (bulletList gstate)
  -- when the player press the p key the game paused.
  
 inputKeyGame (EventKey (Char 'n' ) Down _ _) gstate
-  = gstate {  bullets = bullets gstate + 1 ,  bulletList = (bulletList gstate) ++ (replicate (bullets gstate) (bullet))}   
-             where bullet = translate (0 + xNew gstate) (0 +upVector gstate) (rotate (0 + leftVector gstate + rightVector gstate) (color blue(circleSolid 3)))
+  = gstate { bulletList = (bulletList gstate) ++ [createBullet (xVector gstate + (50*xVector gstate)) (yVector gstate + (50*xVector gstate))  (-5* cosRotate) ( 5*sinRotate)]}
+              where sinRotate = sin(degreesToRad (90 + rightVector gstate + leftVector gstate ))
+                    cosRotate = cos(degreesToRad (90 + rightVector gstate  + leftVector gstate ))
+             
+
+
 
 inputKeyGame _ gstate = case lives gstate of
   0 -> GameOver ShowGameOver 0 (score gstate) (highScoreList gstate) False 
@@ -86,10 +108,10 @@ inputKeyGame _ gstate = case lives gstate of
 inputKeyMenu :: Event -> GameState -> GameState
 -- the inputKeyMenu function handles all the player input when the player is in the gamemenu.
 inputKeyMenu (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0 (highScoreList gstate) 
+ = GamePlaying ShowGame 0 0 0 0 0 0 3 [] (highScoreList gstate)
 -- when the player press the enter key, the game will start.
 inputKeyMenu (EventKey (Char 'h') _ _ _) gstate
- = GameHighScore ShowHighScore 0 ""  False
+ = GameHighScore ShowHighScore 0 "" False
 -- when the player press the h key, he will go to the highscorelist.
 inputKeyMenu _ gstate = gstate
 -- for every other input the gamemenu will not be affected.
@@ -97,7 +119,7 @@ inputKeyMenu _ gstate = gstate
 inputKeyHigh :: Event -> GameState -> GameState
 -- the inputKeyHigh function handles all the player input when the player is in the highscorelist.
 inputKeyHigh (EventKey (Char 'b') _ _ _) gstate
- = GameMenu ShowMenu 0 " " False 
+ = GameMenu ShowMenu 0 "" False
 -- when the player press the b key, the player will return to the gamemenu.
 inputKeyHigh _ gstate = gstate
 -- for every other input the highscorelist will not be affected.
@@ -105,28 +127,29 @@ inputKeyHigh _ gstate = gstate
 inputKeyOver :: Event -> GameState -> GameState
 -- the inputKeyOver function handles all the player input when the player is in the gameoverscreen.
 inputKeyOver (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0 (highScoreList gstate)
+ = GamePlaying ShowGame 0 0 0 0 0 0 3 [] (highScoreList gstate)
 -- when the player press the enter key, the game will start again.
 inputKeyOver (EventKey (Char 'h') _ _ _) gstate
- = GameHighScore ShowHighScore 0 "" False
+ = GameHighScore ShowHighScore 0  "" False
 -- when the player press the h key, he will go to the highscorelist.
+--inputKeyOver (EventKey (Char 's') Down _ _) gstate = gstate { newscore = writeFile "C:/Users/Guido/OneDrive/Documenten/fp asteroid game 2018/highscores.txt" (show(score gstate)) }
 inputKeyOver _ gstate = gstate
 -- for every other input the gameoverscreen will not be affected.
 
 inputKeyPaused :: Event -> GameState -> GameState
 -- the inputKeyPaused function handles all the player input when the game is paused
 inputKeyPaused (EventKey (Char 'p') Down _ _) gstate
- = GamePlaying ShowGame (elapsedTime gstate) (upVector gstate) (rightVector gstate) (leftVector gstate) (xNew gstate) (score gstate) 
-                        (lives gstate) (bullets gstate)(bulletList gstate)(bulletX gstate)(bulletY gstate) (highScoreList gstate)
+ = GamePlaying ShowGame (elapsedTime gstate) (yVector gstate) (rightVector gstate) (leftVector gstate) (xVector gstate) (score gstate) 
+                        (lives gstate)(bulletList gstate)(highScoreList gstate)
 -- when the player press the p key again, then the game will resume normally.
 inputKeyPaused _ gstate = gstate
 -- for every other input the pausedscreen will not be affected.
 
 inputKey :: Event -> GameState -> GameState
 inputKey event gstate = case gstate of 
- GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ -> inputKeyGame event gstate
- GameMenu _ _ _ _ -> inputKeyMenu event gstate
- GameHighScore _ _ _ _ -> inputKeyHigh event gstate 
- GameOver _ _ _ _ _ -> inputKeyOver event gstate
- GamePaused _ _ _ _ _ _ _ _ _ _ _ _ -> inputKeyPaused event gstate
+ GamePlaying _ _ _ _ _ _ _ _ _ _-> inputKeyGame event gstate
+ GameMenu _ _ _ _-> inputKeyMenu event gstate
+ GameHighScore _ _ _ _-> inputKeyHigh event gstate 
+ GameOver _ _ _ _ _-> inputKeyOver event gstate
+ GamePaused _ _ _ _ _ _ _ _ _ -> inputKeyPaused event gstate
 -- the inputKey function will evaluated in which gamestate the player is, and will handle only input of the player that are used for the gamestate.

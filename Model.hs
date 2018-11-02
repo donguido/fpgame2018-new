@@ -14,26 +14,31 @@ data InfoToShow = ShowMenu
 nO_SECS_BETWEEN_CYCLES :: Float
 nO_SECS_BETWEEN_CYCLES = 60
 
+data Bullet = Bullet {
+			   bulletX :: Float
+			  ,bulletY :: Float
+			  ,bulletXVector :: Float
+			  ,bulletYVector :: Float
+			  
+}
+
 data GameState = GamePlaying {
                    infoToShow  :: InfoToShow
                  , elapsedTime :: Float
-				 , upVector :: Float
+				 , yVector :: Float
 				 , leftVector :: Float
 				 , rightVector :: Float
-				 , xNew :: Float
+				 , xVector :: Float
 				 , score :: Int
 				 , lives :: Int
-                 , bullets :: Int
-				 , bulletList :: [Picture]
-				 , bulletX :: Float
-				 , bulletY :: Float
-                 , highScoreList :: String
+				 , bulletList :: [Bullet]
+				 , highScoreList :: String		 
 			     }
 			   | GameMenu {
 				   infoToShow :: InfoToShow
 				 , elapsedTime :: Float
-                 , highScoreList :: String
-                 , readHighList :: Bool
+				 , highScoreList :: String
+				 , readHighList :: Bool
 				 } 
                | GameHighScore {
 			       infoToShow :: InfoToShow
@@ -44,22 +49,19 @@ data GameState = GamePlaying {
 			   | GamePaused {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
-				 , upVector :: Float
+				 , yVector :: Float
 				 , leftVector :: Float
 				 , rightVector :: Float
-				 , xNew :: Float
+				 , xVector :: Float
 				 , score :: Int
 				 , lives :: Int
-				 , bullets :: Int
-				 , bulletList :: [Picture]
-				 , bulletX :: Float
-				 , bulletY :: Float
+				 , bulletList :: [Bullet]
 				 }
                | GameOver {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
 				 , score :: Int
-                 , highScoreList :: String
+				 , highScoreList :: String
 				 , saved :: Bool
 			   }
 -- this are the gamestates that the game can be in with the variables that we use in each state.
