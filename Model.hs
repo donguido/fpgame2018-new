@@ -27,14 +27,19 @@ data GameState = GamePlaying {
 				 , bulletList :: [Picture]
 				 , bulletX :: Float
 				 , bulletY :: Float
+                 , highScoreList :: String
 			     }
 			   | GameMenu {
 				   infoToShow :: InfoToShow
 				 , elapsedTime :: Float
+                 , highScoreList :: String
+                 , readHighList :: Bool
 				 } 
                | GameHighScore {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
+				 , highScoreList :: String
+				 , readed :: Bool
 			   }
 			   | GamePaused {
 			       infoToShow :: InfoToShow
@@ -54,11 +59,13 @@ data GameState = GamePlaying {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
 				 , score :: Int
+                 , highScoreList :: String
+				 , saved :: Bool
 			   }
 -- this are the gamestates that the game can be in with the variables that we use in each state.
    
 initialState :: GameState
-initialState = GameMenu ShowMenu 0
+initialState = GameMenu ShowMenu 0 " " False
 -- this is the initialstate in which the game will be when the player opens this program.
 
 --GameMenu Drawing

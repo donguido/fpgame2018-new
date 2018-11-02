@@ -16,16 +16,22 @@ moveSpeed :: Float
 moveSpeed = 10
 -- this is the defition of the moveSpeed value we use in this controller class.
 
-newscore :: IO()
-newscore = putStr "score"
-
 pressed :: Bool
 pressed = False
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case gstate of
+  GameMenu _ _ _ False -> do readscore <- readFile "HighScore.txt"
+                             return $ gstate { highScoreList = readscore, readHighList = True}
   GamePaused _ _ _ _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate }
+  GameOver _ _ _ _ False -> do 
+                            let addscore = highScoreList gstate ++ " " ++ show(score gstate)
+                            writescore <- writeFile ("HighScores.txt") addscore
+                            copyscore <- writeFile "Highscore.txt" addscore
+                            return $ gstate { saved = True } 
+  GameHighScore _ _ _ False -> do highScoreL <- readFile "HighScores.txt"
+                                  return $ gstate { readed = True, highScoreList = highScoreL }    
   _ -> return $ gstate { elapsedTime = elapsedTime gstate + secs }
 --the step function handles the iterations of the game. it only updates the time when the game is not paused.
   {-| elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES 
@@ -71,10 +77,8 @@ inputKeyGame (EventKey (Char 'n' ) Down _ _) gstate
   = gstate {  bullets = bullets gstate + 1 ,  bulletList = (bulletList gstate) ++ (replicate (bullets gstate) (bullet))}   
              where bullet = translate (0 + xNew gstate) (0 +upVector gstate) (rotate (0 + leftVector gstate + rightVector gstate) (color blue(circleSolid 3)))
 
-
-
 inputKeyGame _ gstate = case lives gstate of
-  0 -> GameOver ShowGameOver 0 (score gstate)
+  0 -> GameOver ShowGameOver 0 (score gstate) (highScoreList gstate) False 
   _ -> gstate
 -- we check if the player has zero lives. if the player has zero lives then it is gameover and the game goes to the gameover gamestate.
 -- for every other input the game will not be affected.
@@ -82,10 +86,10 @@ inputKeyGame _ gstate = case lives gstate of
 inputKeyMenu :: Event -> GameState -> GameState
 -- the inputKeyMenu function handles all the player input when the player is in the gamemenu.
 inputKeyMenu (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0
+ = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0 (highScoreList gstate) 
 -- when the player press the enter key, the game will start.
 inputKeyMenu (EventKey (Char 'h') _ _ _) gstate
- = GameHighScore ShowHighScore 0
+ = GameHighScore ShowHighScore 0 ""  False
 -- when the player press the h key, he will go to the highscorelist.
 inputKeyMenu _ gstate = gstate
 -- for every other input the gamemenu will not be affected.
@@ -93,7 +97,7 @@ inputKeyMenu _ gstate = gstate
 inputKeyHigh :: Event -> GameState -> GameState
 -- the inputKeyHigh function handles all the player input when the player is in the highscorelist.
 inputKeyHigh (EventKey (Char 'b') _ _ _) gstate
- = GameMenu ShowMenu 0 
+ = GameMenu ShowMenu 0 " " False 
 -- when the player press the b key, the player will return to the gamemenu.
 inputKeyHigh _ gstate = gstate
 -- for every other input the highscorelist will not be affected.
@@ -101,12 +105,11 @@ inputKeyHigh _ gstate = gstate
 inputKeyOver :: Event -> GameState -> GameState
 -- the inputKeyOver function handles all the player input when the player is in the gameoverscreen.
 inputKeyOver (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0
+ = GamePlaying ShowGame 0 0 0 0 0 0 3 0 [] 0 0 (highScoreList gstate)
 -- when the player press the enter key, the game will start again.
 inputKeyOver (EventKey (Char 'h') _ _ _) gstate
- = GameHighScore ShowHighScore 0
+ = GameHighScore ShowHighScore 0 "" False
 -- when the player press the h key, he will go to the highscorelist.
---inputKeyOver (EventKey (Char 's') Down _ _) gstate = gstate { newscore = writeFile "C:/Users/Guido/OneDrive/Documenten/fp asteroid game 2018/highscores.txt" (show(score gstate)) }
 inputKeyOver _ gstate = gstate
 -- for every other input the gameoverscreen will not be affected.
 
@@ -114,16 +117,16 @@ inputKeyPaused :: Event -> GameState -> GameState
 -- the inputKeyPaused function handles all the player input when the game is paused
 inputKeyPaused (EventKey (Char 'p') Down _ _) gstate
  = GamePlaying ShowGame (elapsedTime gstate) (upVector gstate) (rightVector gstate) (leftVector gstate) (xNew gstate) (score gstate) 
-                        (lives gstate) (bullets gstate)(bulletList gstate)(bulletX gstate)(bulletY gstate)
+                        (lives gstate) (bullets gstate)(bulletList gstate)(bulletX gstate)(bulletY gstate) (highScoreList gstate)
 -- when the player press the p key again, then the game will resume normally.
 inputKeyPaused _ gstate = gstate
 -- for every other input the pausedscreen will not be affected.
 
 inputKey :: Event -> GameState -> GameState
 inputKey event gstate = case gstate of 
- GamePlaying _ _ _ _ _ _ _ _ _ _ _ _-> inputKeyGame event gstate
- GameMenu _ _ -> inputKeyMenu event gstate
- GameHighScore _ _ -> inputKeyHigh event gstate 
- GameOver _ _ _ -> inputKeyOver event gstate
+ GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ -> inputKeyGame event gstate
+ GameMenu _ _ _ _ -> inputKeyMenu event gstate
+ GameHighScore _ _ _ _ -> inputKeyHigh event gstate 
+ GameOver _ _ _ _ _ -> inputKeyOver event gstate
  GamePaused _ _ _ _ _ _ _ _ _ _ _ _ -> inputKeyPaused event gstate
 -- the inputKey function will evaluated in which gamestate the player is, and will handle only input of the player that are used for the gamestate.

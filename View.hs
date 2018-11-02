@@ -33,8 +33,8 @@ viewPure gstate = case infoToShow gstate of
                               yVector = elapsedTime gstate * 20 
 -- when the player plays the game, then the game will, dependent on the player input, write the spaceship, asteroids, bullets, score and lives on the screen.
                                     
-  ShowHighScore -> pictures[ scale (0.5) (0.5) (translate (0) (150) (color white(text "High Score")))
-                            ,scale (0.5) (0.5) (translate (-350) (-20) (color white(text "Press b to go back to Menu")))]
+  ShowHighScore -> pictures[ scale (0.5) (0.5) (translate (0) (150) (color white(text (highScoreList gstate))))
+                            ,scale (0.5) (0.5) (translate (-450) (-350) (color white(text "Press b to go back to Menu")))]
 -- when the player is in the highscoresstate, then we will show the highscorelist and a text that says that the player can return to the gameMenu.
 
 
