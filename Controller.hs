@@ -8,12 +8,9 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
 
-rotateSpeed :: Float
-rotateSpeed = 15
+
 -- This is the defition of the rotateSpeed value we use in this controller class. 
 
-moveSpeed :: Float
-moveSpeed = 10
 -- this is the defition of the moveSpeed value we use in this controller class.
 
 changeAsteroid :: Asteroid -> Asteroid
@@ -47,19 +44,40 @@ outOfBoundX x
   | x > 500 = -500
   | otherwise = x
 
+
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case gstate of
   GameMenu _ _ _ False -> do readscore <- readFile "HighScore.txt"
                              return $ gstate { highScoreList = readscore, readHighList = True}
-  GamePaused _ _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate } 
-  GamePlaying _ _ _ _ _ _ _ _ _ _ _-> return $ gstate {elapsedTime = elapsedTime gstate + secs 
+  GamePaused _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate } 
+  GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> return $ gstate {elapsedTime = elapsedTime gstate + secs 
                                                    ,bulletList =  filter (\x -> not (oobBullet x) )(map changeBullet (bulletList gstate))
-                                                   ,asteroidList = map (\x -> (oobAsteroid x) )(map changeAsteroid (asteroidList gstate))
-                                                   ,xVector = (outOfBoundX (xVector gstate))
-                                                   ,yVector = (outOfBoundY (yVector gstate))
+                                                   ,asteroidList = map (oobAsteroid)(map changeAsteroid (asteroidList gstate))
                                                    
-                                                   }
+                                                   ,rotatespeed = case aPressed gstate || dPressed gstate of
+                                                                  True -> 10
+                                                                  _ -> 0
+
+                                                   ,leftVector =  case aPressed gstate of
+                                                                  True  -> leftVector gstate - (rotatespeed gstate)
+                                                                  _  -> leftVector gstate
+
+                                                   ,rightVector =  case dPressed gstate of
+                                                                   True -> rightVector gstate + (rotatespeed gstate)
+                                                                   _ ->  rightVector gstate
+                                                   
+                                                   
+                                                   ,movespeed =  case wPressed gstate of
+                                                                 True ->  10
+                                                                 _ -> 0
+
+                                                  , yVector = outOfBoundY (yVector gstate + (movespeed gstate * sinRotate))
+                                                  , xVector = outOfBoundX (xVector gstate  - (movespeed gstate * cosRotate))}
+                                                      where sinRotate = sin(degreesToRad (90 + rightVector gstate + leftVector gstate ))
+                                                            cosRotate = cos(degreesToRad (90 + rightVector gstate  + leftVector gstate )) 
+                                                                                                       
+                                                   
   GameOver _ _ _ _ False -> do 
                             let addscore = highScoreList gstate ++ " " ++ show(score gstate)
                             writescore <- writeFile ("HighScores.txt") addscore
@@ -106,25 +124,35 @@ degreesToRad x = x*(pi/180)
 inputKeyGame :: Event -> GameState -> GameState
 -- the inputKeyGame function handles all the player input when he is playing the game.
 inputKeyGame (EventKey (Char 'w') Down _ _) gstate
- = gstate { yVector = yVector gstate + (moveSpeed * sinRotate)
-          , xVector  = xVector gstate  - (moveSpeed * cosRotate)}
-            where sinRotate = sin(degreesToRad (90 + rightVector gstate + leftVector gstate ))
-                  cosRotate = cos(degreesToRad (90 + rightVector gstate  + leftVector gstate ))
+ = gstate { wPressed = True } 
+
+inputKeyGame (EventKey (Char 'w') Up _ _) gstate
+ = gstate { wPressed = False }
+ 
+
+
 
 -- when the player press the w key the spaceship moves forward in the right direction.
 inputKeyGame (EventKey (Char 'a') Down _ _) gstate
- = gstate { leftVector = leftVector gstate - rotateSpeed }
+ = gstate { aPressed = True }
+
+inputKeyGame (EventKey (Char 'a') Up _ _) gstate
+ = gstate { aPressed = False }
+
 -- when the player press the a key the spaceship rotate around it s own axis to the left.
 inputKeyGame (EventKey (Char 'd') Down _ _) gstate
- = gstate { rightVector = rightVector gstate + rotateSpeed }
+ = gstate { dPressed = True }
+
+inputKeyGame (EventKey (Char 'd') Up _ _) gstate
+ = gstate { dPressed = False }
 -- when the player press the d key the spaceship rotate around it s own axis to the right.
 inputKeyGame (EventKey (Char 'q') Down _ _) gstate 
  = gstate { score = score gstate + (fst (randomR (0, 10) (mkStdGen 49)))}
 inputKeyGame (EventKey (Char 'k') Down _ _) gstate
  = gstate { lives = lives gstate - 1}  
 inputKeyGame (EventKey (Char 'p') Down _ _) gstate
- = GamePaused ShowPause (elapsedTime gstate) (yVector gstate) (rightVector gstate) (leftVector gstate) (xVector gstate) 
-                        (score gstate) (lives gstate) (bulletList gstate) (asteroidList gstate)
+ = GamePaused ShowPause (elapsedTime gstate) (yVector gstate) (rightVector gstate) (leftVector gstate) (xVector gstate) (movespeed gstate) (rotatespeed gstate)
+                        (score gstate) (lives gstate) (bulletList gstate) (asteroidList gstate)(wPressed gstate) (aPressed gstate) (dPressed gstate)
  -- when the player press the p key the game paused.
  
 inputKeyGame (EventKey (SpecialKey KeySpace ) Down _ _) gstate
@@ -144,7 +172,7 @@ inputKeyGame _ gstate = case lives gstate of
 inputKeyMenu :: Event -> GameState -> GameState
 -- the inputKeyMenu function handles all the player input when the player is in the gamemenu.
 inputKeyMenu (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate) 
+ = GamePlaying ShowGame 0 0 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate) False False False
 -- when the player press the enter key, the game will start.
 inputKeyMenu (EventKey (Char 'h') _ _ _) gstate
  = GameHighScore ShowHighScore 0 "" False
@@ -163,7 +191,7 @@ inputKeyHigh _ gstate = gstate
 inputKeyOver :: Event -> GameState -> GameState
 -- the inputKeyOver function handles all the player input when the player is in the gameoverscreen.
 inputKeyOver (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate)
+ = GamePlaying ShowGame 0 0 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate) False False False
 -- when the player press the enter key, the game will start again.
 inputKeyOver (EventKey (Char 'h') _ _ _) gstate
  = GameHighScore ShowHighScore 0  "" False
@@ -175,17 +203,17 @@ inputKeyOver _ gstate = gstate
 inputKeyPaused :: Event -> GameState -> GameState
 -- the inputKeyPaused function handles all the player input when the game is paused
 inputKeyPaused (EventKey (Char 'p') Down _ _) gstate
- = GamePlaying ShowGame (elapsedTime gstate) (yVector gstate) (rightVector gstate) (leftVector gstate) (xVector gstate) (score gstate) 
-                        (lives gstate)(bulletList gstate)(asteroidList gstate)(highScoreList gstate)
+ = GamePlaying ShowGame (elapsedTime gstate) (yVector gstate) (rightVector gstate) (leftVector gstate) (xVector gstate) (movespeed gstate)(rotatespeed gstate) (score gstate) 
+                        (lives gstate)(bulletList gstate)(asteroidList gstate)(highScoreList gstate) (wPressed gstate) (aPressed gstate) (dPressed gstate)
 -- when the player press the p key again, then the game will resume normally.
 inputKeyPaused _ gstate = gstate
 -- for every other input the pausedscreen will not be affected.
 
 inputKey :: Event -> GameState -> GameState
 inputKey event gstate = case gstate of 
- GamePlaying _ _ _ _ _ _ _ _ _ _ _-> inputKeyGame event gstate
+ GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> inputKeyGame event gstate
  GameMenu _ _ _ _-> inputKeyMenu event gstate
  GameHighScore _ _ _ _-> inputKeyHigh event gstate 
  GameOver _ _ _ _ _-> inputKeyOver event gstate
- GamePaused _ _ _ _ _ _ _ _ _ _-> inputKeyPaused event gstate
+ GamePaused _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> inputKeyPaused event gstate
 -- the inputKey function will evaluated in which gamestate the player is, and will handle only input of the player that are used for the gamestate.

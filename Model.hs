@@ -35,11 +35,16 @@ data GameState = GamePlaying {
 				 , leftVector :: Float
 				 , rightVector :: Float
 				 , xVector :: Float
+				 , movespeed :: Float
+				 , rotatespeed :: Float 
 				 , score :: Int
 				 , lives :: Int
 				 , bulletList :: [Bullet]
 				 , asteroidList :: [Asteroid]
-				 , highScoreList :: String		 
+				 , highScoreList :: String		
+				 , wPressed :: Bool
+				 , aPressed :: Bool
+				 , dPressed :: Bool 
 			     }
 			   | GameMenu {
 				   infoToShow :: InfoToShow
@@ -60,10 +65,15 @@ data GameState = GamePlaying {
 				 , leftVector :: Float
 				 , rightVector :: Float
 				 , xVector :: Float
+				 , movespeed :: Float
+				 , rotatespeed :: Float
 				 , score :: Int
 				 , lives :: Int
 				 , bulletList :: [Bullet]
 				 , asteroidList :: [Asteroid]
+				 , wPressed :: Bool
+				 , aPressed :: Bool
+				 , dPressed :: Bool 
 				 }
                | GameOver {
 			       infoToShow :: InfoToShow
