@@ -27,6 +27,14 @@ changeBullet Bullet {bulletX = x , bulletY = y, bulletXVector = vx, bulletYVecto
 oobBullet :: Bullet -> Bool
 oobBullet Bullet {bulletX = x , bulletY = y} = ( x < -700) || ( y > 500 ) || ( x > 700 ) || ( y < -500 ) 
 
+oobAsteroid :: Asteroid -> Asteroid
+oobAsteroid i@Asteroid{asteroidX = x , asteroidY = y, asteroidXVector = vx, asteroidYVector = vy} 
+  | x < -700 = Asteroid { asteroidX = 700, asteroidY = y , asteroidXVector = vx, asteroidYVector = vy }
+  | y > 500 =  Asteroid { asteroidY = -500, asteroidX = x , asteroidXVector = vx, asteroidYVector = vy }
+  | x > 700 =  Asteroid { asteroidX = -700, asteroidY = y , asteroidXVector = vx, asteroidYVector = vy }
+  | y < -500 = Asteroid { asteroidY = 500, asteroidX = x, asteroidXVector = vx, asteroidYVector = vy }
+  | otherwise = id i
+
 outOfBoundY :: Float -> Float
 outOfBoundY x 
   | x < -500 = 500
@@ -39,10 +47,6 @@ outOfBoundX x
   | x > 500 = -500
   | otherwise = x
 
-
-
-
-
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step secs gstate = case gstate of
@@ -51,11 +55,10 @@ step secs gstate = case gstate of
   GamePaused _ _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate } 
   GamePlaying _ _ _ _ _ _ _ _ _ _ _-> return $ gstate {elapsedTime = elapsedTime gstate + secs 
                                                    ,bulletList =  filter (\x -> not (oobBullet x) )(map changeBullet (bulletList gstate))
-                                                   ,asteroidList = map changeAsteroid (asteroidList gstate)
+                                                   ,asteroidList = map (\x -> (oobAsteroid x) )(map changeAsteroid (asteroidList gstate))
                                                    ,xVector = (outOfBoundX (xVector gstate))
                                                    ,yVector = (outOfBoundY (yVector gstate))
-                                                   ,asteroidXVector = outOfBoundX (asteroidXVector)
-                                                   ,asteroidYVector = outOfBoundY (asteroidYVector)
+                                                   
                                                    }
   GameOver _ _ _ _ False -> do 
                             let addscore = highScoreList gstate ++ " " ++ show(score gstate)
@@ -89,7 +92,7 @@ createAsteroid px py vx vy =  Asteroid { asteroidX = px , asteroidY = py ,  aste
 
 
 randomAsteroid :: Int -> Int -> Int -> Int -> Asteroid
-randomAsteroid rx ry rvx rvy= createAsteroid (fst (randomR (-100,100) (mkStdGen rx))) (fst (randomR (-100,100) (mkStdGen ry))) (fst (randomR (-5,5) (mkStdGen rvx))) (fst (randomR (-5,5) (mkStdGen rvy))) 
+randomAsteroid rx ry rvx rvy= createAsteroid (fst (randomR (-600,600) (mkStdGen rx))) (fst (randomR (-400,400) (mkStdGen ry))) (fst (randomR (-10,10) (mkStdGen rvx))) (fst (randomR (-10,10) (mkStdGen rvy))) 
 
 {-(fst(randomR (-100, 200) (mkStdGen rx))) (fst(randomR (-100, 200) (mkStdGen ry))) (fst(randomR (-5 , 5) (mkStdGen rvx)))  (fst(randomR (-5 , 5) (mkStdGen rvy))) 
 -}
@@ -124,7 +127,7 @@ inputKeyGame (EventKey (Char 'p') Down _ _) gstate
                         (score gstate) (lives gstate) (bulletList gstate) (asteroidList gstate)
  -- when the player press the p key the game paused.
  
-inputKeyGame (EventKey (Char 'n' ) Down _ _) gstate
+inputKeyGame (EventKey (SpecialKey KeySpace ) Down _ _) gstate
   = gstate { bulletList = (bulletList gstate) ++ [createBullet (xVector gstate - (50*cosRotate)) (yVector gstate + (50*sinRotate))  (-15* cosRotate) ( 15*sinRotate)]}
               where sinRotate = sin(degreesToRad (90 + rightVector gstate + leftVector gstate ))
                     cosRotate = cos(degreesToRad (90 + rightVector gstate  + leftVector gstate ))

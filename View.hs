@@ -16,10 +16,10 @@ merge []     ys     = ys
 merge (x:xs) (y:ys) = x : y : merge xs ys
 
 drawBullet :: Bullet -> Picture
-drawBullet x = translate (bulletX x) (bulletY x) (color blue(circleSolid 3))
+drawBullet x = translate (bulletX x) (bulletY x) (color blue(circleSolid 4))
 
 drawAsteroid :: Asteroid -> Picture
-drawAsteroid x = translate (asteroidX x) (asteroidY x) (color red(thickCircle 20 1))
+drawAsteroid x = translate (asteroidX x) (asteroidY x) (color red(thickCircle 40 1))
 
 viewPure :: GameState -> Picture
 -- the function viewPure writes for each gamestate figures and text to the screen.
