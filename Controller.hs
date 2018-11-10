@@ -39,7 +39,7 @@ bulletAsteroidCollison :: [Bullet] -> [Asteroid] -> Bool
 bulletAsteroidCollison [] _ = False
 bulletAsteroidCollison _ [] = False
 bulletAsteroidCollison (bullet@Bullet { bulletX = x1, bulletY = y1, bulletXVector = vx1, bulletYVector =vy1 } :bullets) (asteroid@Asteroid { asteroidX = x2, asteroidY = y2, asteroidXVector = vx2, asteroidYVector = vy2}:asteroids) 
-  | (sqrt(abs(x1-x2)*(abs(x1-x2))+(abs(y1-y2)*abs(y1-y2))) < 88)  = True 
+  | (sqrt(abs(x1-x2)*(abs(x1-x2))+(abs(y1-y2)*abs(y1-y2))) < 40)  = True 
   | otherwise = bulletAsteroidCollison bullets asteroids  
 -- this function checks if a bullet is in collison with a asteroid.
   
@@ -76,9 +76,9 @@ step secs gstate = case gstate of
                                                    0 -> return (GameOver ShowGameOver 0 (score gstate) (highScoreList gstate) False)
                                                    _ -> return $ gstate {elapsedTime = elapsedTime gstate + secs
 -- if the player has 0 lives left in the game, then the game is over and he will go to the gameover state, else game will be updated.
-                                                   ,bulletList =  filter (\x -> not (oobBullet x)) (map changeBullet (bulletList gstate))												  
+                                                     ,bulletList =  filter (\x -> not (bulletAsteroidCollison ([x]) (asteroidList gstate)))(map changeBullet (bulletList gstate))													  
 -- the list of bullet will be updated dependent whether a bullet is out of bound, then the bullet will be deleted. and whetehr a bullet is shooted by the player.												   
-                                                   ,asteroidList = map (oobAsteroid)(map changeAsteroid (asteroidList gstate))
+                                                     ,asteroidList = filter (\x -> not (bulletAsteroidCollison (bulletList gstate) ([x])))(map (oobAsteroid)(map changeAsteroid (asteroidList gstate)))
 -- the list of asteroid will be updated dependent whether the asteroid is out of bound or not.												   
 												   ,score = if bulletAsteroidCollison (bulletList gstate) (asteroidList gstate) then score gstate + 25 else score gstate
 -- the score will be updated when a bullet hits a asteroid, then the score will add 25 points. Else the score will be the same.												   
