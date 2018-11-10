@@ -41,7 +41,9 @@ data GameState = GamePlaying {
 				 , lives :: Int
 				 , bulletList :: [Bullet]
 				 , asteroidList :: [Asteroid]
-				 , highScoreList :: String		
+				 , highScoreList :: String	
+                 , isInvincible :: Bool
+                 , isInvincibleTime :: Float				 
 				 , wPressed :: Bool
 				 , aPressed :: Bool
 				 , dPressed :: Bool 
@@ -55,7 +57,7 @@ data GameState = GamePlaying {
                | GameHighScore {
 			       infoToShow :: InfoToShow
 				 , elapsedTime :: Float
-				 , highScoreList :: String
+				 , highScoreString :: String
 				 , readed :: Bool
 			   }
 			   | GamePaused {
@@ -71,6 +73,8 @@ data GameState = GamePlaying {
 				 , lives :: Int
 				 , bulletList :: [Bullet]
 				 , asteroidList :: [Asteroid]
+				 , isInvincible :: Bool
+                 , isInvincibleTime :: Float
 				 , wPressed :: Bool
 				 , aPressed :: Bool
 				 , dPressed :: Bool 
