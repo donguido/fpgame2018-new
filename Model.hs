@@ -43,7 +43,8 @@ data GameState = GamePlaying {
 				 , asteroidList :: [Asteroid]
 				 , highScoreList :: String	
                  , isInvincible :: Bool
-                 , isInvincibleTime :: Float				 
+                 , isInvincibleTime :: Float
+                 , isNotBlinking :: Bool				 
 				 , wPressed :: Bool
 				 , aPressed :: Bool
 				 , dPressed :: Bool 

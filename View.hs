@@ -33,7 +33,7 @@ viewPure gstate = case infoToShow gstate of
                       , scale (0.2)(0.2) (translate (-1500)( 1650) (color white(text ("Score:" ++ show (score gstate)))))
                       , scale (0.2)(0.2) (translate (-1500)( 1500) (color white(text ("Lives:" ++ show (lives gstate)))))
                       ]  $ (merge (map drawBullet (bulletList gstate))(map drawAsteroid (asteroidList gstate))))
-                        where player = (translate (0 + xVector gstate) (0 + yVector gstate)(rotate (0 + leftVector gstate + rightVector gstate)(color white (line [(-25, -15), (0,0),(25,-15),(0,50),(-25,-15)]))))
+                        where player = if isInvincible gstate then (if isNotBlinking gstate then (translate (0 + xVector gstate) (0 + yVector gstate)(rotate (0 + leftVector gstate + rightVector gstate)(color white (line [(-25, -15), (0,0),(25,-15),(0,50),(-25,-15)])))) else color white(text " ")) else (translate (0 + xVector gstate) (0 + yVector gstate)(rotate (0 + leftVector gstate + rightVector gstate)(color white (line [(-25, -15), (0,0),(25,-15),(0,50),(-25,-15)])))) 
                               asteroidxVector = elapsedTime gstate * 20 
                               asteroidyVector = elapsedTime gstate * 20 
                               

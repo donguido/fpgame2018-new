@@ -72,7 +72,7 @@ step secs gstate = case gstate of
 -- in the gamemenu state the game will read the highscore textfile and give it to the state and set the readhighlist boolean to True.
   GamePaused _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> return $ gstate { elapsedTime = elapsedTime gstate } 
 -- if the game is paused the time will stop.
-  GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> case lives gstate of 
+  GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ -> case lives gstate of 
                                                    0 -> return (GameOver ShowGameOver 0 (score gstate) (highScoreList gstate) False)
                                                    _ -> return $ gstate {elapsedTime = elapsedTime gstate + secs
 -- if the player has 0 lives left in the game, then the game is over and he will go to the gameover state, else game will be updated.
@@ -82,12 +82,8 @@ step secs gstate = case gstate of
 -- the list of asteroid will be updated dependent whether the asteroid is out of bound or not.												   
 												   ,score = if bulletAsteroidCollison (bulletList gstate) (asteroidList gstate) then score gstate + 25 else score gstate
 -- the score will be updated when a bullet hits a asteroid, then the score will add 25 points. Else the score will be the same.												   
-												   ,lives = if isInvincible gstate then lives gstate else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then lives gstate -1 else lives gstate)
-												                 {-True -> lives gstate
-												                 _ -> case playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) of
-  															               True -> lives gstate - 1 
-																           _ -> lives gstate-}
--- the lives will be updated when the player hits a asteroid, then the player will lose one live. Else the lives will be the same.
+												   ,lives = if isInvincible gstate then lives gstate else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then lives gstate -1 else lives gstate)												                 
+-- the lives will be updated when the player hits a asteroid, then the player will lose one live. Else the lives will be the same. no lives will be lost when the player is invincible.
                                                    ,rotatespeed = case aPressed gstate || dPressed gstate of
                                                                   True -> 10
                                                                   _ -> 0
@@ -104,30 +100,18 @@ step secs gstate = case gstate of
                                                                  True ->  10
                                                                  _ -> 0
 -- the movespeed will be 10 when the player press the w key. Else it will be zero.
-                                                   ,isInvincibleTime = if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then 5 else isInvincibleTime gstate - secs
-												   
-                                                   ,isInvincible = if isInvincible gstate then (if isInvincibleTime gstate <= 0 then False else True) else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then True else False)
-												                         {-True -> case isInvincibleTime gstate <= 0 of 
-      																	              True -> False
-																			          _ ->  True
-																         _ -> case playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) of
-  																	               True -> True  
-																		           _ -> False-}
-																   
-                                                  ,yVector = if isInvincible gstate then outOfBoundY (yVector gstate + (movespeed gstate * sinRotate)) else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then 0 else outOfBoundY (yVector gstate + (movespeed gstate * sinRotate)))
- 												                  {-True -> outOfBoundY (yVector gstate + (movespeed gstate * sinRotate))
-															      _ -> case playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) of
-    															            True -> 0 
-        														            _ -> outOfBoundY (yVector gstate + (movespeed gstate * sinRotate))-}
--- the yvector will be zero when the player collides with a asteroid. Else the player y postion will be updated and checked if it is out of bound.	  
-                                                  ,xVector = if isInvincible gstate then outOfBoundX (xVector gstate  - (movespeed gstate * cosRotate)) else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then 0 else outOfBoundX (xVector gstate  - (movespeed gstate * cosRotate)))
-												                  {-True -> outOfBoundX (xVector gstate  - (movespeed gstate * cosRotate))
-															      _ -> case playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) of
-															                True -> 0 
-																            _ -> outOfBoundX (xVector gstate  - (movespeed gstate * cosRotate))-}}
+                                                   ,isInvincibleTime = if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then 3 else isInvincibleTime gstate - secs
+-- the time that the player is invincible will be reset when the player collides with a asteroid. else the invincibletime variable will subtract as the seconds pass.												   
+                                                   ,isInvincible = if isInvincible gstate then (if isInvincibleTime gstate <= 0 then False else True) else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then True else False)												                   
+-- if the player is invincible then no collison with a asteroid is possible.	
+                                                   , isNotBlinking = if isInvincible gstate then (if (even(round(isInvincibleTime gstate))) then True else False) else False
+-- the player blink at the even seconds, when the player is invincible.												   
+                                                  ,yVector = if isInvincible gstate then outOfBoundY (yVector gstate + (movespeed gstate * sinRotate)) else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then 0 else outOfBoundY (yVector gstate + (movespeed gstate * sinRotate))) 												                  
+-- the yvector will be zero when the player collides with a asteroid. Else the player y postion will be updated and checked if it is out of bound. If the player is invincible there is no collison possible	  
+                                                  ,xVector = if isInvincible gstate then outOfBoundX (xVector gstate  - (movespeed gstate * cosRotate)) else (if playerAsteroidCollison (xVector gstate) (yVector gstate) (asteroidList gstate) then 0 else outOfBoundX (xVector gstate  - (movespeed gstate * cosRotate)))	}											          
                                                       where sinRotate = sin(degreesToRad (90 + rightVector gstate + leftVector gstate ))
                                                             cosRotate = cos(degreesToRad (90 + rightVector gstate  + leftVector gstate )) 
--- the xvector will be zero when the player collides with a asteroid. Else the player x postion will be updated and checked if it is out of bound.                                                                                                                                                          
+-- the xvector will be zero when the player collides with a asteroid. Else the player x postion will be updated and checked if it is out of bound. If the player is invincible there is no collison possible                                                                                                                                                         
   GameOver _ _ _ _ False -> do 
                             let addscore = highScoreList gstate ++ " " ++ show(score gstate) ++ "\n"
                             writescore <- writeFile ("HighScores.txt") addscore
@@ -216,7 +200,7 @@ inputKeyGame _ gstate = case lives gstate of
 inputKeyMenu :: Event -> GameState -> GameState
 -- the inputKeyMenu function handles all the player input when the player is in the gamemenu.
 inputKeyMenu (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate) False 5 False False False
+ = GamePlaying ShowGame 0 0 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate) False 3 True False False False
 -- when the player press the enter key, the game will start.
 inputKeyMenu (EventKey (Char 'h') _ _ _) gstate
  = GameHighScore ShowHighScore 0 "" False
@@ -235,7 +219,7 @@ inputKeyHigh _ gstate = gstate
 inputKeyOver :: Event -> GameState -> GameState
 -- the inputKeyOver function handles all the player input when the player is in the gameoverscreen.
 inputKeyOver (EventKey (SpecialKey KeyEnter) _ _ _) gstate
- = GamePlaying ShowGame 0 0 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate) False 5 False False False
+ = GamePlaying ShowGame 0 0 0 0 0 0 0 0 3 [] [randomAsteroid 4 52 15 3,randomAsteroid 53 32 56 2, randomAsteroid 2 42 5 23](highScoreList gstate) False 3 True False False False
 -- when the player press the enter key, the game will start again.
 inputKeyOver (EventKey (Char 'h') _ _ _) gstate
  = GameHighScore ShowHighScore 0  "" False
@@ -248,14 +232,14 @@ inputKeyPaused :: Event -> GameState -> GameState
 -- the inputKeyPaused function handles all the player input when the game is paused
 inputKeyPaused (EventKey (Char 'p') Down _ _) gstate
  = GamePlaying ShowGame (elapsedTime gstate) (yVector gstate) (rightVector gstate) (leftVector gstate) (xVector gstate) (movespeed gstate)(rotatespeed gstate) (score gstate) 
-                        (lives gstate)(bulletList gstate)(asteroidList gstate)(highScoreList gstate) (isInvincible gstate) (isInvincibleTime gstate) (wPressed gstate) (aPressed gstate) (dPressed gstate)
+                        (lives gstate)(bulletList gstate)(asteroidList gstate)(highScoreList gstate) (isInvincible gstate) (isInvincibleTime gstate) (isNotBlinking gstate) (wPressed gstate) (aPressed gstate) (dPressed gstate)
 -- when the player press the p key again, then the game will resume normally.
 inputKeyPaused _ gstate = gstate
 -- for every other input the pausedscreen will not be affected.
 
 inputKey :: Event -> GameState -> GameState
 inputKey event gstate = case gstate of 
- GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> inputKeyGame event gstate
+ GamePlaying _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _-> inputKeyGame event gstate
  GameMenu _ _ _ _-> inputKeyMenu event gstate
  GameHighScore _ _ _ _-> inputKeyHigh event gstate 
  GameOver _ _ _ _ _-> inputKeyOver event gstate
